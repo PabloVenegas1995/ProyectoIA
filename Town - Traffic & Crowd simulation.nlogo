@@ -1,6 +1,7 @@
 breed[cars car]
 breed[houses house]
 breed[trees tree]
+breed[semaforos semaforo]
 breed[crossings crossing]
 breed[lightsR lightR]
 breed[lightsL lightL]
@@ -19,6 +20,14 @@ globals[
   redH           ;;how many times there was red in the horizontal direction
   greenH         ;;how many times there was green in the horizontal direction
   speedLimit     ;;the global maximum speed in the city
+
+]
+semaforos-own[
+  id ; nombre de los semaforos
+  enEspera ;Autos que hay en espera
+  enVerde
+  greenTime
+  redTime
 
 ]
 persons-own[
@@ -65,33 +74,167 @@ to go
   tick
 end
 
+;to control-traffic-lights
+;  if ticks mod (50 * lights-interval * greenH + 65 * lights-interval * redH ) = 0 [change-color lightsR "H" change-color lightsL "H"]
+;  if ticks mod (50 * lights-interval * greenV + 65 * lights-interval * redV ) = 0 [change-color lightsU "V" change-color lightsD "V"]
+;end
+
 
 to control-traffic-lights
-  if ticks mod (50 * lights-interval * greenH + 65 * lights-interval * redH ) = 0 [change-color lightsR "H" change-color lightsL "H"]
-  if ticks mod (50 * lights-interval * greenV + 65 * lights-interval * redV ) = 0 [change-color lightsU "V" change-color lightsD "V"]
-end
+  ask semaforos with [id = 1][
 
-to change-color [lights D]
-
-  ask one-of lights [
-    ifelse color = red [
-      ifelse D = "H" [
-        set greenH greenH + 1
-        ][
-        set greenV greenV + 1]
-        ]
-    [
-      ifelse D = "H" [
-        set redH redH + 1][
-        set redV redV + 1]
-        ]
-
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 1][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 1][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 1][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 1][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 1][ set color red set greenTime 0]]
   ]
 
-  ask lights [
-    ifelse color = red [set color green][set color red]
+ask semaforos with [id = 2][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 2][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 2][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 2][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 2][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 2][ set color red set greenTime 0]]
   ]
+ask semaforos with [id = 3][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 3][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 3][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 3][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 3][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 3][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 4][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 4][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 4][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 4][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 4][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 4][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 5][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 5][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 5][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 5][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 5][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 5][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 6][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 6][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 6][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 6][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 6][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 6][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 7][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 7][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 7][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 7][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 7][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 7][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 8][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 8][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 8][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 8][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 8][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 8][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 9][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 9][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 9][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 9][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 9][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 9][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 10][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 10][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 10][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 10][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 10][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 10][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 11][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 11][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 11][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 11][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 11][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 11][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 12][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 12][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 12][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 12][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 12][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 12][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 13][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 13][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 13][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 13][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 13][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 13][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 14][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 14][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 14][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 14][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 14][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 14][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 15][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 15][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 15][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 15][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 15][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 15][ set color red set greenTime 0]]
+  ]
+ask semaforos with [id = 16][
+
+    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 16][ set enEspera 1]]
+    if (enEspera = 1)[ask semaforos with [id = 16][set redTime redTime + 1] ]
+    if (redTime > 100)[ask semaforos with [id = 16][set color green set enEspera 0 set redTime 0]]
+    if (color = green)[ask semaforos with [id = 16][set greenTime greenTime + 1]]
+    if (greenTime > 100)[ask semaforos with [id = 16][ set color red set greenTime 0]]
+  ]
+
+
 end
+
+;to change-color [lights D]
+
+;  ask one-of lights [
+;    ifelse color = red [
+;      ifelse D = "H" [
+;        set greenH greenH + 1
+;        ][
+;        set greenV greenV + 1]
+;        ]
+;    [
+;      ifelse D = "H" [
+;        set redH redH + 1][
+;        set redV redV + 1]
+;        ]
+
+;  ]
+
+; ask lights [
+;   ifelse color = red [set color green][set color red]
+; ]
+;end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Setup procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -440,38 +583,271 @@ to place-people
 end
 
 to place-lights
-  ask patches with [(pycor mod 22 = 0 or pycor mod 22 = 21) and pxcor mod 40 = 1] [
-    sprout-lightsL 1 [
-      set color red
-      set shape "lights"
+  ask patch 1 0 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 1
     ]
-  ]
-
-  ask patches with [(pycor mod 22 = 19 or pycor mod 22 = 18) and pxcor mod 40 = 35] [
-    sprout-lightsR 1 [
-      set color red
-      set shape "lights"
     ]
-  ]
-
-  ask patches with [(pxcor mod 40 = 36 or pxcor mod 40 = 37) and pycor mod 22 = 1] [
-    sprout-lightsD 1 [
-      set color green
-      set shape "lights"
+  ask patch 1 43 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 1
     ]
-  ]
-
-  ask patches with [(pxcor mod 40 = 39 or pxcor mod 40 = 0) and pycor mod 22 = 17] [
-    sprout-lightsU 1 [
-      set color green
-      set shape "lights"
     ]
-  ]
+  ask patch 1 21 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 2
+    ]
+    ]
+  ask patch 1 22 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 2
+    ]
+    ]
+  ask patch 41 0 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 3
+    ]
+    ]
+  ask patch 41 43 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 3
+    ]
+    ]
+  ask patch 41 22 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 4
+    ]
+    ]
+  ask patch 41 21 [
+    sprout-semaforos 1 [
+      set heading 90
+      set shape "arrow"
+      set color black
+      set id 4
+    ]
+    ]
 
-  set greenH 0
-  set redH 1
-  set redV 0
-  set greenV 1
+  ask patch 0 17 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 5
+    ]
+    ]
+  ask patch 79 17 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 5
+    ]
+    ]
+  ask patch 0 39  [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 6
+    ]
+    ]
+  ask patch 79 39 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 6
+    ]
+    ]
+  ask patch 39 17 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 7
+    ]
+    ]
+  ask patch 40 17 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 7
+    ]
+    ]
+  ask patch 39 39 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 8
+    ]
+    ]
+  ask patch 40 39 [
+    sprout-semaforos 1 [
+      set heading 180
+      set shape "arrow"
+      set color black
+      set id 8
+    ]
+    ]
+  ask patch 35 18 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 9
+    ]
+    ]
+  ask patch 35 19 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 9
+    ]
+    ]
+  ask patch 35 40 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 10
+    ]
+    ]
+  ask patch 35 41 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 10
+    ]
+    ]
+  ask patch 75 18 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 11
+    ]
+    ]
+  ask patch 75 19 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 11
+    ]
+    ]
+  ask patch 75 40 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 12
+    ]
+    ]
+  ask patch 75 41 [
+    sprout-semaforos 1 [
+      set heading 270
+      set shape "arrow"
+      set color black
+      set id 12
+    ]
+    ]
+  ask patch 36 1 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 13
+    ]
+    ]
+  ask patch 37 1 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 13
+    ]
+    ]
+  ask patch 36 23 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 14
+    ]
+    ]
+  ask patch 37 23 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 14
+    ]
+    ]
+  ask patch 76 1  [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 15
+    ]
+    ]ask patch 77 1 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 15
+    ]
+    ]
+  ask patch 76 23  [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 16
+    ]
+    ]
+  ask patch 77 23 [
+    sprout-semaforos 1 [
+      set heading 0
+      set shape "arrow"
+      set color black
+      set id 16
+    ]
+    ]
+  ask semaforos with [heading = 90 or heading = 270][
+    set color green
+  ]
+  ask semaforos with [heading = 180 or heading = 0][
+    set color red
+  ]
+  ask semaforos [
+  set enEspera 0
+  ]
 
 end
 
@@ -587,8 +963,7 @@ to move-cars
     check-crossing
 
     ;whether traffic lights show red or green
-    ifelse not any? (lightsR-on patch-ahead 1.5) with [color = red] and not any? (lightsL-on patch-ahead 1.5) with [color = red]
-    and not any? (lightsD-on patch-ahead 1.5) with [color = red] and not any? (lightsU-on patch-ahead 1.5) with [color = red] [fd speed / 200 ] [set speed 0]
+    ifelse not any? (semaforos-on patch-ahead 1.5) with [color = red] [fd speed / 200 ] [set speed 0]
 
   ]
 end
@@ -816,7 +1191,7 @@ num-of-cars
 num-of-cars
 0
 200
-100.0
+51.0
 1
 1
 NIL
@@ -906,7 +1281,7 @@ prob-of-turning
 prob-of-turning
 0
 100
-40.0
+94.0
 1
 1
 NIL
@@ -919,7 +1294,7 @@ SWITCH
 422
 turning-left?
 turning-left?
-0
+1
 1
 -1000
 
@@ -1775,7 +2150,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.0.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
