@@ -20,6 +20,7 @@ globals[
   redH           ;;how many times there was red in the horizontal direction
   greenH         ;;how many times there was green in the horizontal direction
   speedLimit     ;;the global maximum speed in the city
+  sumaEspera
 
 ]
 semaforos-own[
@@ -28,6 +29,11 @@ semaforos-own[
   enVerde
   greenTime
   redTime
+  autosEsperando
+  isGreen1
+  isGreen2
+  isRed1
+  isRed2
 
 ]
 persons-own[
@@ -46,6 +52,7 @@ cars-own[
   turnY          ;;coordinates of patch where car will change its direction when turning left
   politeness     ;;how politeness cars are, that means how often they will stop and let people cross the road
   will-stop?     ;;whether the car will stop and let pedestrian(s) to cross the road
+  tiempoEspera
 ]
 
 
@@ -54,187 +61,560 @@ to setup
   set speedLimit speed-limit
   draw-sidewalk
   draw-roads
-  ;;draw-houses&trees
-  ;;draw-crossings
+  draw-houses&trees
+  draw-crossings
   place-cars
-  place-lights
-  ;;place-people
+  ifelse(chooseHeuristics = 0) [place-lights-original][place-lights]
+  if (people? = true) [place-people]
 
   reset-ticks
   tick
+
+
 
 end
 
 to go
   move-cars
-  control-traffic-lights
+  if(chooseHeuristics = 1) [control-traffic-lights]
+  if(chooseHeuristics = 2) [control-traffic-lights2]
+  if(chooseHeuristics = 0) [original]
   move-people
   plot-waiting
+  contar-espera
+ ;  control-choques
 
   tick
 end
 
-;to control-traffic-lights
-;  if ticks mod (50 * lights-interval * greenH + 65 * lights-interval * redH ) = 0 [change-color lightsR "H" change-color lightsL "H"]
-;  if ticks mod (50 * lights-interval * greenV + 65 * lights-interval * redV ) = 0 [change-color lightsU "V" change-color lightsD "V"]
-;end
+to original
+  if ticks mod (50 * lights-interval * greenH + 65 * lights-interval * redH ) = 0 [change-color lightsR "H" change-color lightsL "H"]
+  if ticks mod (50 * lights-interval * greenV + 65 * lights-interval * redV ) = 0 [change-color lightsU "V" change-color lightsD "V"]
+end
+
+
+to contar-espera
+  ask cars [
+    if (speed < 0.5 ) [set tiempoEspera tiempoEspera + 1]
+    set sumaEspera tiempoEspera
+
+  ]
+
+
+end
 
 
 to control-traffic-lights
   ask semaforos with [id = 1][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 1][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 1][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 1][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 1][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 1][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 1][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 1] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 1][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
+  ]
+  ask semaforos with [id = 2][
+
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 2][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 2] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 2][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
+  ]
+  ask semaforos with [id = 3][
+
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 3][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 3] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 3][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
 
-ask semaforos with [id = 2][
+  ask semaforos with [id = 4][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 2][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 2][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 2][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 2][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 2][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 4][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 4] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 4][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 3][
+  ask semaforos with [id = 5][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 3][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 3][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 3][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 3][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 3][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 5][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 5] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 5][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 4][
+  ask semaforos with [id = 6][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 4][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 4][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 4][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 4][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 4][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 6][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 6] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 6][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 5][
+  ask semaforos with [id = 7][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 5][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 5][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 5][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 5][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 5][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 7][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 7] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 7][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 6][
+  ask semaforos with [id = 8][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 6][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 6][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 6][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 6][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 6][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 8][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 8] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 8][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 7][
+  ask semaforos with [id = 9][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 7][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 7][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 7][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 7][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 7][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 9][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 9] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 9][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 8][
+  ask semaforos with [id = 10][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 8][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 8][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 8][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 8][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 8][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 10][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 10] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 10][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 9][
+  ask semaforos with [id = 11][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 9][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 9][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 9][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 9][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 9][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 11][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 11] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 11][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 10][
+  ask semaforos with [id = 12][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 10][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 10][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 10][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 10][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 10][ set color red set greenTime 0]]
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 12][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 12] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 12][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
-ask semaforos with [id = 11][
+  ask semaforos with [id = 13][
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 11][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 11][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 11][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 11][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 11][ set color red set greenTime 0]]
-  ]
-ask semaforos with [id = 12][
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 13][ set enEspera 1]]
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 12][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 12][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 12][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 12][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 12][ set color red set greenTime 0]]
-  ]
-ask semaforos with [id = 13][
+    if( enEspera = 0 ) [set color red set redTime 0]
 
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 13][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 13][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 13][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 13][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 13][ set color red set greenTime 0]]
-  ]
-ask semaforos with [id = 14][
-
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 14][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 14][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 14][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 14][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 14][ set color red set greenTime 0]]
-  ]
-ask semaforos with [id = 15][
-
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 15][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 15][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 15][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 15][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 15][ set color red set greenTime 0]]
-  ]
-ask semaforos with [id = 16][
-
-    if any? (cars-on patch-ahead 2)[ask semaforos with [id = 16][ set enEspera 1]]
-    if (enEspera = 1)[ask semaforos with [id = 16][set redTime redTime + 1] ]
-    if (redTime > 100)[ask semaforos with [id = 16][set color green set enEspera 0 set redTime 0]]
-    if (color = green)[ask semaforos with [id = 16][set greenTime greenTime + 1]]
-    if (greenTime > 100)[ask semaforos with [id = 16][ set color red set greenTime 0]]
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 13] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 13][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
   ]
 
+   ask semaforos with [id = 14][
+
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 14][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 14] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [  set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [  set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 14][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
+  ]
+  ask semaforos with [id = 15][
+
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 15][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 15] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 15][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
+  ]
+  ask semaforos with [id = 16][
+
+    if ( any? cars-on patch-ahead 2  )[
+      ask semaforos with [id = 16][ set enEspera 1]]
+
+    if( enEspera = 0 ) [set color red set redTime 0]
+
+    if (enEspera = 1)[ set redTime redTime + 1
+      if (redTime > waiting)[
+        ask semaforos with [id = 16] [
+          set color green
+          set greenTime greenTime + 1
+          ask semaforos-on patch-left-and-ahead 170 4  [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+          ask semaforos-on patch-right-and-ahead 100 4 [ set redTime 0 ask semaforos-on neighbors4 [set redTime 0]]
+        ]
+      ]
+      if (greenTime > waiting) [
+          ask semaforos with [id = 16][
+            set redTime 0 set greenTime 0 set enEspera 0
+            ask semaforos-on patch-left-and-ahead 170 4  [ set redTime waiting / redTimeDivisor ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor]]
+            ask semaforos-on patch-right-and-ahead 100 4 [ set redTime waiting / redTimeDivisor2 ask semaforos-on neighbors4 [set redTime waiting / redTimeDivisor2]]
+            set color red
+          ]
+        ]
+      ]
+  ]
+
+;      ask semaforos-on patch-left-and-ahead 170 4 [
+
+;          set color red set enEspera 0
+;          ask semaforos-on neighbors4 [set enEspera 0 set color red]
+
+;      ]
+;      ask semaforos with [id = 1] [ set color green ]
+
+;      ]
+
+
+
+;ask semaforos with [id = 2][
+;
+;    if (any? cars-on patch-ahead 2 and color = red )[ask semaforos with [id = 2][ set enEspera 1]]
+;    if (enEspera = 1)[ask semaforos with [id = 2][set redTime redTime + 1] ]
+;    if (redTime > intervalo)[ask semaforos with [id = 2][set color green set enEspera 0 set redTime 0]]
+;    if (color = green)[ask semaforos with [id = 2][set greenTime greenTime + 1]]
+;    if (greenTime > intervalo)[ask semaforos with [id = 2][ set color red set greenTime 0]]
+;  ]
 
 end
 
-;to change-color [lights D]
+to control-traffic-lights2
 
-;  ask one-of lights [
-;    ifelse color = red [
-;      ifelse D = "H" [
-;        set greenH greenH + 1
-;        ][
-;        set greenV greenV + 1]
-;        ]
-;    [
-;      ifelse D = "H" [
-;        set redH redH + 1][
-;        set redV redV + 1]
-;        ]
+  ask semaforos [
+;   if( color = green) [set greenTime greenTime + 1]
+;   if (greenTime > waiting) [set color red set greenTime 0 ask semaforos-on neighbors4 [set color red set greenTime 0 ]]
 
-;  ]
+    let sumaIzq 0
+    let sumaDer 0
+    ask semaforos-on patch-left-and-ahead 170 4  [ set sumaIzq check-from-me distancia ask semaforos-on neighbors4 [set sumaIzq sumaIzq + check-from-me distancia] ]
+    ask semaforos-on patch-right-and-ahead 100 4 [ set sumaDer check-from-me distancia ask semaforos-on neighbors4 [set sumaDer sumaDer + check-from-me distancia] ]
+    if(color = red) [set redTime redTime + 1]
+    if(color = red and redTime > waiting)[
+      set autosEsperando check-from-me distancia
+      ask semaforos-on neighbors4 [set autosEsperando autosEsperando + check-from-me distancia ]
+      if (autosEsperando > sumaIzq or autosEsperando > sumaDer) [
+        ask semaforos-on patch-left-and-ahead  170 4 [ set color red set greenTime 0 set redtime 0 ask semaforos-on neighbors4 [ set color red set greenTime 0 set redtime 0] ]
+        ask semaforos-on patch-right-and-ahead 100 4 [ set color red set greenTime 0 set redtime 0 ask semaforos-on neighbors4 [ set color red set greenTime 0 set redtime 0] ]
+        set color green
+        set redTime 0
+        ask semaforos-on neighbors4 [set color green ]
+      ]
 
-; ask lights [
-;   ifelse color = red [set color green][set color red]
-; ]
-;end
+    ]
+;    ask semaforos-on patch-left-and-ahead 170 4  [ ifelse(color = red) [set isRed1 1 ask semaforos-on neighbors4 [set isRed1 1]][set isRed1 0 ask semaforos-on neighbors4 [set isRed1 0]] ]
+;    ask semaforos-on patch-right-and-ahead 100 4 [ ifelse(color = red) [set isRed2 1 ask semaforos-on neighbors4 [set isRed2 1]][set isRed2 0 ask semaforos-on neighbors4 [set isRed1 0]] ]
+;   if( isRed1 = 1 and isRed2 = 1)[
+
+    if( color = green) [
+      set redTime 0
+      set greenTime greenTime + 1
+      set autosEsperando 0
+      if (greenTime > waiting) [set color red set greenTime 0 set autosEsperando 0 ask semaforos-on neighbors4 [set color red set greenTime 0 set autosEsperando 0]]
+    ]
+;    ]
+  ]
+end
+
+  to-report check-from-me [howfar]
+  let counter 0
+  let candidates cars-here
+  while [counter < howfar]
+  [ set counter counter + 1
+    set candidates (turtle-set candidates cars-on patch-ahead counter)
+  ]
+  report count candidates
+end
+
+to change-color [lights D]
+
+  ask one-of lights [
+    ifelse color = red [
+      ifelse D = "H" [
+        set greenH greenH + 1
+        ][
+        set greenV greenV + 1]
+        ]
+    [
+      ifelse D = "H" [
+        set redH redH + 1][
+        set redV redV + 1]
+        ]
+
+  ]
+
+ ask lights [
+   ifelse color = red [set color green][set color red]
+ ]
+end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Setup procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -851,6 +1231,42 @@ to place-lights
 
 end
 
+to place-lights-original
+  ask patches with [(pycor mod 22 = 0 or pycor mod 22 = 21) and pxcor mod 40 = 1] [
+    sprout-lightsL 1 [
+      set color red
+      set shape "lights"
+    ]
+  ]
+
+  ask patches with [(pycor mod 22 = 19 or pycor mod 22 = 18) and pxcor mod 40 = 35] [
+    sprout-lightsR 1 [
+      set color red
+      set shape "lights"
+    ]
+  ]
+
+  ask patches with [(pxcor mod 40 = 36 or pxcor mod 40 = 37) and pycor mod 22 = 1] [
+    sprout-lightsD 1 [
+      set color green
+      set shape "lights"
+    ]
+  ]
+
+  ask patches with [(pxcor mod 40 = 39 or pxcor mod 40 = 0) and pycor mod 22 = 17] [
+    sprout-lightsU 1 [
+      set color green
+      set shape "lights"
+    ]
+  ]
+
+  set greenH 0
+  set redH 1
+  set redV 0
+  set greenV 1
+
+end
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Car procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to control-speed
@@ -1120,6 +1536,7 @@ to plot-waiting
   set-current-plot-pen "Waiting pedestrians"
   plot (count persons with [waiting? = true])
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -1191,7 +1608,7 @@ num-of-cars
 num-of-cars
 0
 200
-51.0
+100.0
 1
 1
 NIL
@@ -1221,7 +1638,7 @@ acceleration
 acceleration
 0
 1
-0.185
+0.5
 0.001
 1
 NIL
@@ -1236,7 +1653,7 @@ deceleration
 deceleration
 0
 1
-0.057
+0.14
 0.001
 1
 NIL
@@ -1251,7 +1668,7 @@ speed-limit
 speed-limit
 30
 150
-70.0
+80.0
 1
 1
 NIL
@@ -1281,7 +1698,7 @@ prob-of-turning
 prob-of-turning
 0
 100
-94.0
+60.0
 1
 1
 NIL
@@ -1307,7 +1724,7 @@ time-to-crossing
 time-to-crossing
 400
 5000
-1000.0
+400.0
 1
 1
 NIL
@@ -1322,7 +1739,7 @@ basic-politeness
 basic-politeness
 0
 100
-50.0
+85.0
 1
 1
 NIL
@@ -1356,6 +1773,89 @@ false
 "" ""
 PENS
 "Waiting pedestrians" 1.0 0 -14070903 true "" ""
+
+INPUTBOX
+1058
+266
+1213
+326
+waiting
+200.0
+1
+0
+Number
+
+INPUTBOX
+1072
+357
+1227
+417
+redTimeDivisor
+2.0
+1
+0
+Number
+
+INPUTBOX
+1110
+446
+1265
+506
+redTimeDivisor2
+2.5
+1
+0
+Number
+
+INPUTBOX
+1086
+535
+1241
+595
+distancia
+6.0
+1
+0
+Number
+
+CHOOSER
+239
+513
+377
+558
+chooseHeuristics
+chooseHeuristics
+0 1 2
+1
+
+PLOT
+1392
+346
+1592
+496
+plot 1
+Time
+Suma tiempos de espera
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [tiempoEspera] of cars"
+
+SWITCH
+49
+511
+152
+544
+people?
+people?
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -2150,10 +2650,36 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.3
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experimento" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="6000"/>
+    <metric>mean [tiempoEspera] of cars</metric>
+    <enumeratedValueSet variable="redTimeDivisor">
+      <value value="1"/>
+      <value value="2"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="num-of-cars" first="50" step="50" last="200"/>
+    <enumeratedValueSet variable="waiting">
+      <value value="100"/>
+      <value value="200"/>
+      <value value="300"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="chooseHeuristics">
+      <value value="1"/>
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="redTimeDivisor2">
+      <value value="1.5"/>
+      <value value="2.5"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
