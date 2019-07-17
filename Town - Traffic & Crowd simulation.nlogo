@@ -1379,7 +1379,8 @@ to move-cars
     check-crossing
 
     ;whether traffic lights show red or green
-    ifelse not any? (semaforos-on patch-ahead 1.5) with [color = red] [fd speed / 200 ] [set speed 0]
+    ifelse(chooseHeuristics = 0)[ifelse not any? (lightsR-on patch-ahead 1.5) with [color = red] and not any? (lightsL-on patch-ahead 1.5) with [color = red]
+    and not any? (lightsD-on patch-ahead 1.5) with [color = red] and not any? (lightsU-on patch-ahead 1.5) with [color = red] [fd speed / 200 ] [set speed 0]] [ifelse not any? (semaforos-on patch-ahead 1.5) with [color = red] [fd speed / 200 ] [set speed 0] ]
 
   ]
 end
@@ -1536,7 +1537,6 @@ to plot-waiting
   set-current-plot-pen "Waiting pedestrians"
   plot (count persons with [waiting? = true])
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -1608,7 +1608,7 @@ num-of-cars
 num-of-cars
 0
 200
-100.0
+200.0
 1
 1
 NIL
@@ -1724,7 +1724,7 @@ time-to-crossing
 time-to-crossing
 400
 5000
-400.0
+869.0
 1
 1
 NIL
@@ -1780,7 +1780,7 @@ INPUTBOX
 1213
 326
 waiting
-200.0
+100.0
 1
 0
 Number
@@ -1826,13 +1826,13 @@ CHOOSER
 chooseHeuristics
 chooseHeuristics
 0 1 2
-1
+2
 
 PLOT
-1392
-346
-1592
-496
+1258
+272
+1458
+422
 plot 1
 Time
 Suma tiempos de espera
@@ -2650,7 +2650,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.0.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -2660,7 +2660,8 @@ NetLogo 6.0.4
     <go>go</go>
     <timeLimit steps="6000"/>
     <metric>mean [tiempoEspera] of cars</metric>
-    <enumeratedValueSet variable="redTimeDivisor">
+    <enumeratedValueSet variable="chooseHeuristics">
+      <value value="0"/>
       <value value="1"/>
       <value value="2"/>
     </enumeratedValueSet>
@@ -2669,14 +2670,6 @@ NetLogo 6.0.4
       <value value="100"/>
       <value value="200"/>
       <value value="300"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="chooseHeuristics">
-      <value value="1"/>
-      <value value="2"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="redTimeDivisor2">
-      <value value="1.5"/>
-      <value value="2.5"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
